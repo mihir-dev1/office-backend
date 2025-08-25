@@ -1,0 +1,57 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    env_file: ./services/auth-service/.env
+    ports:
+      - "4001:4001"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  company-service:
+    build:
+      context: ./services/company-service
+      dockerfile: Dockerfile
+    container_name: company-service
+    env_file: ./services/company-service/.env
+    ports:
+      - "4002:4002"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  employee-service:
+    build:
+      context: ./services/employee-service
+      dockerfile: Dockerfile
+    container_name: employee-service
+    env_file: ./services/employee-service/.env
+    ports:
+      - "4003:4003"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+volumes:
+  mongo_data:
